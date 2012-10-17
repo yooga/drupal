@@ -19,6 +19,16 @@ function current_posts_help($path, $arg) {
   }
 } 
 
+/**
+* Implements hook_block_info().
+*/
+function current_posts_block_info() {
+  $blocks['current_posts'] = array(
+    'info' => t('Current posts'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
 
 
 
