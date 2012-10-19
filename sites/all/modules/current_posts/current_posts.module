@@ -111,9 +111,26 @@ function current_posts_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  $items['current_posts'] = array(
+    'title' => 'Current posts',
+    'page callback' => '_current_posts_page',
+    'access arguments' => array('access current_posts content'),
+    'type' => MENU_NORMAL_ITEM, //Will appear in Navigation menu.
+  );
+  
   return $items;
 }
 
+/**
+* Implements hook_permission().
+*/
+function current_posts_permission() {
+  return array(
+    'access current_posts content' => array(
+      'title' => t('Access content for the Current posts module'),
+    )
+  );
+}
 /**
 * Page callback: Current posts settings
 *
