@@ -56,6 +56,7 @@ function current_posts_contents(){
     ->condition('status', 1) //Published.
     ->condition('created', array($start_time, $end_time), 'BETWEEN')
     ->orderBy('created', 'DESC') //Most recent first.
+    ->range(0, $max_num) //New Line
     ->execute();
   return $query; 
 }
@@ -131,3 +132,23 @@ function current_posts_form($form, &$form_state) {
 
   return system_settings_form($form);
 }
+
+/**
+* Implements validation from the Form API.
+*
+* @param $form
+*   A structured array containing the elements and properties of the form.
+* @param $form_state
+*   An array that stores information about the form's current state
+*   during processing.
+*/
+function current_posts_form_validate($form, &$form_state){
+  $max_num = $form_state['values']['current_posts_max'];
+  if (!is_numeric($max_num)){
+    form_set_error('current_posts_max', t('You must enter a number for the maximum number of posts to display.'));
+  }
+  else if ($max_num <= 0){
+    form_set_error('current_posts_max', t('Maximum number of posts to display must be positive.'));
+  }
+}
+
