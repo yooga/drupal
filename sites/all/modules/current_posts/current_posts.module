@@ -39,7 +39,7 @@ function current_posts_block_info() {
 * @return
 *   A result set of the targeted posts.
 */
-function current_posts_contents(){
+function current_posts_contents($display){ //$display argument is new
   //Get today's date.
   $today = getdate();
   //Calculate the date a week ago.
@@ -55,10 +55,15 @@ function current_posts_contents(){
     ->fields('n', array('nid', 'title', 'created'))
     ->condition('status', 1) //Published.
     ->condition('created', array($start_time, $end_time), 'BETWEEN')
-    ->orderBy('created', 'DESC') //Most recent first.
-    ->range(0, $max_num) //New Line
-    ->execute();
-  return $query; 
+    ->orderBy('created', 'DESC'); //Most recent first.
+    
+    if ($display == 'block'){
+    // Restrict the range if called with 'block' argument.
+      $query->range(0, $max_num);
+    } //Now proceeds to execute().
+    //If called by page, query proceeds directly to execute().
+    
+  return $query->execute(); 
 }
 
 /**
@@ -72,7 +77,7 @@ function current_posts_block_view($delta = '') {
       $block['subject'] = t('Current posts');
       if(user_access('access content')){
         //Use our custom function to retrieve data.
-        $result = current_posts_contents();
+        $result = current_posts_contents('block');
         //Array to contain items for the block to render.
         $items = array();
         //Iterate over the resultset and format as links.
@@ -168,4 +173,38 @@ function current_posts_form_validate($form, &$form_state){
     form_set_error('current_posts_max', t('Maximum number of posts to display must be positive.'));
   }
 }
+
+/**
+* Custom page callback function, declared in current_posts_menu().
+*/
+function _current_posts_page() {
+  $result = current_posts_contents('page');
+  //Array to contain items for the page to render.
+  $items = array();
+  //Iterate over the resultset and format as links.
+  foreach ($result as $node) {
+    $items[] = array(
+    'data' => l($node->title, 'node/' . $node->nid),
+    );
+  }
+  
+  if (empty($items)) { //No content in the last week.
+    $page_array['current_posts_arguments'] = array(
+      //Title serves as page subtitle
+      '#title' => t('All posts from the last week'),
+      '#markup' => t('No posts available.'),
+    );
+    return $page_array; 
+  } 
+  else {
+    $page_array['current_posts_arguments'] = array(
+      '#title' => t('All posts from the last week'),
+      '#items' => $items,
+      //Theme hook with suggestion. 
+      '#theme' => 'item_list__current_posts',
+    );
+    return $page_array;
+  }
+}
+  
 
